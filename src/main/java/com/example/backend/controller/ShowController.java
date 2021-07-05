@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-@CrossOrigin(origins = "http://localhost:8081")
+@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 @RequestMapping("/api")
 // wire the path
@@ -36,16 +36,13 @@ public class ShowController {
   public ResponseEntity<List<Show>> getAllShows(@RequestParam(required = false) String title) {
     try {
       List<Show> shows = new ArrayList<Show>();
-
       if (title == null)
         showRepo.findAll().forEach(shows::add);
       else
         showRepo.findByTitleContaining(title).forEach(shows::add);
-
       if (shows.isEmpty()) {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
       }
-
       return new ResponseEntity<>(shows, HttpStatus.OK);
     } catch (Exception e) {
       return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -55,7 +52,6 @@ public class ShowController {
   @GetMapping("/shows/{id}")
   public ResponseEntity<Show> getShowById(@PathVariable("id") long id) {
     Optional<Show> showData = showRepo.findById(id);
-
     if (showData.isPresent()) {
       return new ResponseEntity<>(showData.get(), HttpStatus.OK);
     } else {
@@ -66,8 +62,8 @@ public class ShowController {
   @PostMapping("/shows")
   public ResponseEntity<Show> createShow(@RequestBody Show show) {
     try {
-      Show _show = showRepo
-              .save(new Show(show.getTitle(), show.getDescription(), false));
+      Show _show = showRepo.save(new Show(show.getTitle(), show.getDescription(), show.getNetwork(), show.getWeekday(),
+                      show.isStatus()));
       return new ResponseEntity<>(_show, HttpStatus.CREATED);
     } catch (Exception e) {
       return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -82,6 +78,8 @@ public class ShowController {
       Show _show = showData.get();
       _show.setTitle(show.getTitle());
       _show.setDescription(show.getDescription());
+      _show.setNetwork(show.getNetwork());
+      _show.setWeekday(show.getWeekday());
       _show.setStatus(show.isStatus());
       return new ResponseEntity<>(showRepo.save(_show), HttpStatus.OK);
     } else {
@@ -107,9 +105,7 @@ public class ShowController {
     } catch (Exception e) {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
-
   }
-
   @GetMapping("/shows/published")
   public ResponseEntity<List<Show>> findByStatus() {
     try {
@@ -123,5 +119,4 @@ public class ShowController {
       return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
-
 }
